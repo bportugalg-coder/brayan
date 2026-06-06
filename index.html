@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEMAE - Control de Asistencia</title>
+    
+    <!-- LIBRERÍA OBLIGATORIA PARA DESCARGA DIRECTA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* --- ESTILOS INSTITUCIONALES CEMAE --- */
+        :root {
+            --verde-ejercito: #2E5A35;
+            --verde-oscuro: #1E3D24;
+            --dorado-cemae: #C19A6B;
+            --gris-aeronautico: #546E7A;
+            --gris-claro: #F4F6F7;
+            --blanco: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: var(--gris-claro);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            background-color: var(--blanco);
+            width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border-bottom: 5px solid var(--dorado-cemae);
+        }
+
+        .header {
+            background-color: var(--verde-ejercito);
+            color: var(--blanco);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 3px solid var(--dorado-cemae);
+        }
+
+        .logo-placeholder {
+            width: 70px;
+            height: 70px;
+            background-color: var(--blanco);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid var(--dorado-cemae);
+            color: var(--verde-ejercito);
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .header-titles {
+            flex-grow: 1;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header h2 {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            font-weight: normal;
+            color: #D5E8D9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            background-color: var(--gris-claro);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #E0E0E0;
+        }
+
+        .input-group {
+            display: flex;
+            flex-grow: 1;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #CCC;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--verde-ejercito);
+        }
+
+        button.main-btn {
+            padding: 12px 24px;
+            background-color: var(--verde-ejercito);
+            color: var(--blanco);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        button.pdf-btn {
+            padding: 12px 20px;
+            background-color: var(--dorado-cemae);
+            color: var(--blanco);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #EEE;
+        }
+
+        th {
+            background-color: #ECEFF1;
+            color: var(--gris-aeronautico);
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .status-cell {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .status-falta {
+            color: var(--gris-aeronautico);
+        }
+
+        .status-asistio {
+            color: var(--verde-ejercito);
+        }
+
+        .row-asistio {
+            background-color: #E8F5E9 !important;
+        }
+
+        button.action-btn {
+            padding: 8px 16px;
+            background-color: var(--blanco);
+            border: 1px solid var(--gris-aeronautico);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--gris-aeronautico);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        button.action-btn.marked {
+            background-color: #E0E0E0;
+            color: #757575;
+            border-color: #E0E0E0;
+            cursor: default;
+        }
+
+        /* CORRECCIÓN: Fecha centrada con espacio completo para evitar cortes */
+        .report-date-footer {
+            margin-top: 40px;
+            text-align: center; /* Centrado para que no choque con el margen derecho */
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: bold;
+            border-top: 1px dotted #CCC;
+            padding-top: 15px;
+            width: 100%;
+            letter-spacing: 0.5px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 11px;
+            color: var(--gris-aeronautico);
+            background-color: #F9F9F9;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container" id="contenedorAsistencia">
+    <!-- CABECERA -->
+    <div class="header">
+        <div class="logo-placeholder">
+            CEMAE<br>🇵🇪
+        </div>
+        <div class="header-titles">
+            <h1>Centro de Mantenimiento Aeronáutico</h1>
+            <h2>Ejército del Perú - Control de Asistencia Personal</h2>
+        </div>
+    </div>
+    
+    <!-- CUERPO -->
+    <div class="content">
+        <div class="actions-bar" id="barraAcciones">
+            <div class="input-group">
+                <input type="text" id="alumnoInput" placeholder="Nombre completo del personal...">
+                <button class="main-btn" onclick="agregarAlumno()">Registrar</button>
+            </div>
+            <button class="pdf-btn" onclick="descargarPDF()">📄 Descargar PDF</button>
+        </div>
+
+        <table id="asistenciaTabla">
+            <thead>
+                <tr>
+                    <th>Grado y Nombre</th>
+                    <th>Estado de Revista</th>
+                    <th class="col-accion" data-html2canvas-ignore="true">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaBody">
+                <!-- Contenido dinámico -->
+            </tbody>
+        </table>
+
+        <!-- CONTENEDOR DE LA FECHA SEGURA -->
+        <div class="report-date-footer">
+            <span id="fechaActual">Cargando fecha del reporte...</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        © CEMAE - Departamento de Recursos Humanos. Uso Exclusivo Institucional.
+    </div>
+</div>
+
+<script>
+    // FUNCIÓN CORREGIDA PARA LA FECHA COMPLETA
+    function establecerFecha() {
+        const meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", 
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+        
+        const fecha = new Date();
+        const dia = fecha.getDate();
+        const mesTexto = meses[fecha.getMonth()];
+        const anio = fecha.getFullYear();
+
+        const diaFormateada = dia < 10 ? '0' + dia : dia;
+
+        // Genera la cadena completa sin restricciones de espacio
+        const fechaCompleta = `Arequipa, ${diaFormateada} de ${mesTexto} del ${anio}`;
+        document.getElementById('fechaActual').textContent = fechaCompleta;
+    }
+
+    establecerFecha();
+
+    function agregarAlumno() {
+        const input = document.getElementById('alumnoInput');
+        const nombre = input.value.trim();
+
+        if (nombre === "") {
+            alert("Por favor, ingrese el Grado y Nombre del personal.");
+            return;
+        }
+
+        const tablaBody = document.getElementById('tablaBody');
+        const nuevaFila = document.createElement('tr');
+
+        nuevaFila.innerHTML = `
+            <td>${nombre}</td>
+            <td class="status-cell status-falta">Falta</td>
+            <td data-html2canvas-ignore="true">
+                <button class="action-btn" onclick="registrarAsistencia(this)">Marcar</button>
+            </td>
+        `;
+
+        tablaBody.appendChild(nuevaFila);
+        input.value = "";
+        input.focus();
+    }
+
+    function registrarAsistencia(boton) {
+        const fila = boton.closest('tr');
+        const celdaEstado = fila.querySelector('.status-cell');
+
+        celdaEstado.textContent = "Asistió";
+        celdaEstado.classList.remove('status-falta');
+        celdaEstado.classList.add('status-asistio');
+        fila.classList.add('row-asistio');
+
+        boton.disabled = true;
+        boton.textContent = "✓";
+        boton.classList.add('marked');
+    }
+
+    /* DESCARGA PDF */
+    function descargarPDF() {
+        const filas = document.querySelectorAll('#tablaBody tr');
+        if (filas.length === 0) {
+            alert("No hay registros en la lista para exportar.");
+            return;
+        }
+
+        const elemento = document.getElementById('contenedorAsistencia');
+        const barra = document.getElementById('barraAcciones');
+
+        barra.style.display = 'none';
+
+        const opciones = {
+            margin:       15, // Aumentamos levemente el margen del PDF para mayor seguridad
+            filename:     'Reporte_Asistencia_CEMAE.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, logging: false, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().from(elemento).set(opciones).save().then(() => {
+            barra.style.display = 'flex';
+        });
+    }
+
+    document.getElementById('alumnoInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            agregarAlumno();
+        }
+    });
+</script>
+
+</body>
+</html>
